@@ -1,0 +1,7 @@
+WORK IN PROGRESS
+
+1> cassanderl_app:start([],[]).
+{ok,<0.33.0>}
+2> cassanderl:call(describe_version, []).
+{ok,<<"2.1.0">>
+
