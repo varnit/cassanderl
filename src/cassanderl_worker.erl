@@ -18,9 +18,15 @@ init(Args) ->
     {ok, #state{conn=Conn}}.
 
 handle_call({call, Function, Args}, _From, #state{conn=Conn}=State) ->
-    {NewConn, Response} = thrift_client:call(Conn, Function, Args), Response,
-    NewState = State#state{conn=NewConn},
-    {reply, Response, NewState};
+    try thrift_client:call(Conn, Function, Args) of
+        {NewConn, Response} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {ok, Response}, NewState}
+    catch
+        {NewConn, {exception, {Exception}}} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {exception, Exception}, NewState}
+    end;
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
