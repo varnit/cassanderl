@@ -5,5 +5,5 @@
               {applications,[kernel,stdlib]},
               {mod,{cassanderl,[]}},
               {env,[]},
-              {modules,[cassanderl,cassanderl_app,cassanderl_deps,
+              {modules,[cassanderl_app,cassanderl_deps,cassanderl_sup,
                         cassanderl_worker]}]}.

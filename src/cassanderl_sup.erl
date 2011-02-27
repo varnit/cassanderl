@@ -1,4 +1,4 @@
--module(cassanderl).
+-module(cassanderl_sup).
 
 -behaviour(supervisor).
 

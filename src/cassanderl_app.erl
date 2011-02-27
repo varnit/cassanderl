@@ -11,7 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     cassanderl_deps:ensure(),
-    cassanderl:start_link().
+    cassanderl_sup:start_link().
 
 stop(_State) ->
     ok.
