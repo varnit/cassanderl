@@ -26,17 +26,20 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    PoolSpecs = [{cassandra,
-                    {poolboy, start_link,
-                        [[{name,
-                            {local, cassandra}},
-                            {worker_module, cassanderl_worker},
-                            {pool_size, 10},
-                            {max_overflow, 20},
-                            {hostname, "127.0.0.1"},
-                            {port, 9160}
-                        ]]},
-                permanent, 5000, worker, [poolboy]}],
+    {ok, Options} = application:get_env(cassanderl, options),
+
+    PoolOptions = [{name,
+                   {local, cassandra_pool}},
+                   {worker_module, cassanderl_worker}
+                   | Options],
+
+    PoolSpecs = [{cassandra_pool,
+                 {poolboy, start_link, [PoolOptions]},
+                 permanent,
+                 5000,
+                 worker,
+                 [poolboy]}],
+
     {ok, {{one_for_all, 10, 10}, PoolSpecs}}.
 
 %% ===================================================================

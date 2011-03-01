@@ -4,5 +4,9 @@
     {registered, []},
     {applications, [kernel, stdlib]},
     {mod, {cassanderl_app, []}},
-    {env, []}
+    {env, [{options,
+               [{pool_size, 10},
+                {max_overflow, 20},
+                {hostname, "127.0.0.1"},
+                {port, 9160}]}]}
 ]}.
