@@ -29,11 +29,11 @@ init([]) ->
     {ok, Options} = application:get_env(cassanderl, options),
 
     PoolOptions = [{name,
-                   {local, cassandra_pool}},
+                   {local, cassandra}},
                    {worker_module, cassanderl_worker}
                    | Options],
 
-    PoolSpecs = [{cassandra_pool,
+    PoolSpecs = [{cassandra,
                  {poolboy, start_link, [PoolOptions]},
                  permanent,
                  5000,
