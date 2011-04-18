@@ -13,8 +13,14 @@ stop() -> gen_server:cast(?MODULE, stop).
 init(Args) ->
     process_flag(trap_exit, true),
     Hostname = proplists:get_value(hostname, Args),
+
+    %% Open connection
     Port = proplists:get_value(port, Args),
     {ok, Conn} = thrift_client_util:new(Hostname, Port, cassandra_thrift, [{framed, true}]), ok,
+
+    %% Set KeySpace
+    KeySpace = proplists:get_value(keyspace, Args),
+    thrift_client:call(Conn, set_keyspace, [KeySpace]),
     {ok, #state{conn=Conn}}.
 
 handle_call({call, Function, Args}, _From, #state{conn=Conn}=State) ->
