@@ -14,7 +14,7 @@ init(Args) ->
     process_flag(trap_exit, true),
     Hostname = proplists:get_value(hostname, Args),
     Port = proplists:get_value(port, Args),
-    {ok, Conn} = thrift_client_util:new(Hostname, Port, cassandra_thrift, []), ok,
+    {ok, Conn} = thrift_client_util:new(Hostname, Port, cassandra_thrift, [{framed, true}]), ok,
     {ok, #state{conn=Conn}}.
 
 handle_call({call, Function, Args}, _From, #state{conn=Conn}=State) ->
