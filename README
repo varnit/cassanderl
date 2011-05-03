@@ -1,6 +1,0 @@
-WORK IN PROGRESS
-
-1> application:start(cassanderl).
-ok
-2> cassanderl_sup:call(describe_version, []).
-{ok,{ok,<<"2.1.0">>}}
