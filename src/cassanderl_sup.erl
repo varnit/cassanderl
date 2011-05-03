@@ -22,7 +22,6 @@ start_link() ->
 
 init([]) ->
     {ok, Size} = application:get_env(cassanderl, worker_pool_size),
-    put(worker_pool_size, Size),
     Workers = [ worker_spec(I) || I <- lists:seq(1, Size) ],
     {ok, {{one_for_one, 10, 1}, Workers}}.
 
@@ -40,7 +39,8 @@ worker_spec(N) ->
 
 pick_worker() ->
     random:seed(erlang:now()),
-    RandomN = random:uniform(get(worker_pool_size)),
+    {ok, Size} = application:get_env(cassanderl, worker_pool_size),
+    RandomN = random:uniform(Size),
     list_to_existing_atom("cassanderl_" ++ integer_to_list(RandomN)).
 
 call(Function, Args) ->
