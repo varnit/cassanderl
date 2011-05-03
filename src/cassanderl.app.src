@@ -1,0 +1,13 @@
+{application, cassanderl, [
+  {description, "Cassandra client"},
+  {vsn, "0.2"},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {mod, {cassanderl_app, []}},
+  {env, [
+    {hostname, "127.0.0.1"},
+    {port, 9160},
+    {keyspace, "Keyspace1"},
+    {worker_pool_size, 10}
+  ]}
+]}.
