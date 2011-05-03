@@ -1,11 +1,13 @@
-  -include("cassandra_thrift/include/cassandra_types.hrl").
+## Cassanderl version 0.2 ##
 
-  ColumnPath = #columnPath{column_family="emails", column="username"},
+    -include("cassandra_thrift/include/cassandra_types.hrl").
 
-  Username =
-    case cassanderl_sup:call(get, ["example@example.com", ColumnPath, 1]) of
-        {ok, {ok, R1}} ->
-            R1#columnOrSuperColumn.column#column.value;
-        {exception, notFoundException} ->
-            undefined
-    end.
+    ColumnPath = #columnPath{column_family="emails", column="username"},
+
+    Username =
+        case cassanderl_sup:call(get, ["example@example.com", ColumnPath, 1]) of
+            {ok, {ok, R1}} ->
+                R1#columnOrSuperColumn.column#column.value;
+            {exception, notFoundException} ->
+                undefined
+        end.
