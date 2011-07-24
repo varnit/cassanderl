@@ -1,10 +1,8 @@
-
 -module(cassanderl_sup).
-
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, pick_worker/0, call/2]).
+-export([start_link/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -22,7 +20,11 @@ start_link() ->
 
 init([]) ->
     {ok, Size} = application:get_env(cassanderl, worker_pool_size),
-    Workers = [ worker_spec(I) || I <- lists:seq(1, Size) ],
+    {ok, GroupName} = application:get_env(cassanderl, pg2_group_name),
+
+    pg2:create(GroupName),
+
+    Workers = [worker_spec(I) || I <- lists:seq(1, Size)],
     {ok, {{one_for_one, 10, 1}, Workers}}.
 
 %% ===================================================================
@@ -31,22 +33,9 @@ init([]) ->
 
 worker_spec(N) ->
     Name = list_to_atom("cassanderl_" ++ integer_to_list(N)),
+
     {Name,
-        {cassanderl, start_link, [Name]},
+        {cassanderl_worker, start_link, [Name]},
         permanent, 1000, worker,
         [cassanderl]
     }.
-
-pick_worker() ->
-    random:seed(erlang:now()),
-    {ok, Size} = application:get_env(cassanderl, worker_pool_size),
-    RandomN = random:uniform(Size),
-    list_to_existing_atom("cassanderl_" ++ integer_to_list(RandomN)).
-
-call(Function, Args) ->
-    Worker = pick_worker(),
-    gen_server:call(Worker, {call, Function, Args}).
-
-
-
-

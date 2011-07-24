@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -15,14 +15,14 @@
 %% API
 %%====================================================================
 
-start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+start_link(Name) ->
+    gen_server:start_link({local, Name}, ?MODULE, [], []).
 
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
 
-init([Name]) ->
+init([]) ->
     {ok, Hostname} = application:get_env(cassanderl, hostname),
     {ok, Port} = application:get_env(cassanderl, port),
     {ok, GroupName} = application:get_env(cassanderl, pg2_group_name),
@@ -31,13 +31,15 @@ init([Name]) ->
     {ok, Conn} = thrift_client_util:new(Hostname, Port, cassandra_thrift, [{framed, true}]), ok,
 
     %% Join pg2 group
-    pg2:join(GroupName, self())
+    pg2:join(GroupName, self()),
 
     {ok, #state{conn = Conn}}.
 
-handle_call({call, Function, Args}, _From, #state{conn=Conn}=State) ->
+handle_call({call, Keyspace, Function, Args}, _From, #state{conn=Conn}=State) ->
     %% Set KeySpace
     {Conn2, {ok, ok}} = thrift_client:call(Conn, set_keyspace, [Keyspace]),
+    %% figure out what thrift_client:call really does?
+    %% does it connect to the cluster or is it a local call.
 
     try thrift_client:call(Conn2, Function, Args) of
         {NewConn, Response} ->

@@ -1,61 +1,41 @@
 -module(cassanderl).
 
--behaviour(gen_server).
+%% TODO: app should start supervisor which will spawn the workers
 
 %% API
--export([start_link/1]).
+-export([get/3, get/4]).
 
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
-
--record(state, {conn}).
--define(SERVER, ?MODULE).
+-include_lib("cassandra_thrift/include/cassandra_types.hrl").
 
 %%====================================================================
 %% API
 %%====================================================================
+%% cassanderl:get("Publication", "PublicationTags", "tq5w8s2fcmr9MWfw7YXEu5IYUc", "Nosql").
 
-start_link(Name) ->
-    gen_server:start_link({local, Name}, ?MODULE, [], []).
+get(Keyspace, ColumnFamily, Key) ->
+    get(Keyspace, ColumnFamily, Key, []).
 
-%%====================================================================
-%% gen_server callbacks
-%%====================================================================
+get(Keyspace, ColumnFamily, Key, Column) ->
+    %% TODO: figure out if we can send an empty list instead of column name
+    ColumnPath = #columnPath{column_family=ColumnFamily, column=Column},
 
-init([]) ->
-    %% Open Connection
-    {ok, Hostname} = application:get_env(cassanderl, hostname),
-    {ok, Port} = application:get_env(cassanderl, port),
-    {ok, Conn} = thrift_client_util:new(Hostname, Port, cassandra_thrift, [{framed, true}]), ok,
+    case gen_server_stub({call, Keyspace, get, [Key, ColumnPath, 1]}) of
+        {ok, {ok, R1}} ->
+            {R1#columnOrSuperColumn.column#column.name, R1#columnOrSuperColumn.column#column.value};
+        {exception, notFoundException} ->
+            undefined
+    end.
 
-    %% Set KeySpace
-    {ok, KeySpace} = application:get_env(keyspace),
-    {Conn2, {ok, ok}} = thrift_client:call(Conn, set_keyspace, [KeySpace]),
-    {ok, #state{conn = Conn2}}.
+%% ------------------------------------------------------------------
+%% Internal Functions
+%% ------------------------------------------------------------------
+gen_server_stub(Request) ->
+    {ok, GroupName} = application:get_env(cassanderl, pg2_group_name),
+    Pid = pg2:get_closest_pid(GroupName),
 
-handle_call({call, Function, Args}, _From, #state{conn=Conn}=State) ->
-    try thrift_client:call(Conn, Function, Args) of
-        {NewConn, Response} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {ok, Response}, NewState}
-    catch
-        {NewConn, {exception, {Exception}}} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {exception, Exception}, NewState}
-    end;
-handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, #state{conn=Conn}) ->
-    thrift_client:close(Conn),
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+    case is_pid(Pid) of
+       true ->
+         gen_server:call(Pid, Request);
+       _ ->
+         []
+    end.
