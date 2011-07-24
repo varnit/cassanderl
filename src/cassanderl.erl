@@ -10,7 +10,6 @@
 %%====================================================================
 %% API
 %%====================================================================
-%% cassanderl:get("Publication", "PublicationTags", "tq5w8s2fcmr9MWfw7YXEu5IYUc", "Nosql").
 
 get(Keyspace, ColumnFamily, Key) ->
     get(Keyspace, ColumnFamily, Key, []).
