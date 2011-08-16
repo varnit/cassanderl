@@ -20,7 +20,7 @@ get(Keyspace, ColumnFamily, Key, Column) ->
 
     case gen_server_stub({call, Keyspace, get, [Key, ColumnPath, 1]}) of
         {ok, {ok, R1}} ->
-            {R1#columnOrSuperColumn.column#column.name, R1#columnOrSuperColumn.column#column.value};
+            {Key, [{R1#columnOrSuperColumn.column#column.name, R1#columnOrSuperColumn.column#column.value}]};
         {exception, notFoundException} ->
             undefined
     end.
