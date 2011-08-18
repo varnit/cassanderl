@@ -35,13 +35,21 @@ init([]) ->
 
     {ok, #state{conn = Conn}}.
 
-handle_call({call, Keyspace, Function, Args}, _From, #state{conn=Conn}=State) ->
-    %% Set KeySpace
-    {Conn2, {ok, ok}} = thrift_client:call(Conn, set_keyspace, [Keyspace]),
-    %% figure out what thrift_client:call really does?
-    %% does it connect to the cluster or is it a local call.
+handle_call({get, Keyspace, Args}, _From, #state{conn=Conn}=State) ->
+    Conn2 = set_keyspace(Keyspace, Conn),
+    try thrift_client:call(Conn2, get, Args) of
+        {NewConn, Response} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {ok, Response}, NewState}
+    catch
+        {NewConn, {exception, {Exception}}} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {exception, Exception}, NewState}
+    end;
 
-    try thrift_client:call(Conn2, Function, Args) of
+handle_call({get_slice, Keyspace, Args}, _From, #state{conn=Conn}=State) ->
+    Conn2 = set_keyspace(Keyspace, Conn),
+    try thrift_client:call(Conn2, get_slice, Args) of
         {NewConn, Response} ->
             NewState = State#state{conn=NewConn},
             {reply, {ok, Response}, NewState}
@@ -66,3 +74,12 @@ terminate(_Reason, #state{conn=Conn}) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+%%====================================================================
+%% Internal Functions
+%%====================================================================
+set_keyspace(Keyspace, Conn) ->
+    %% figure out what thrift_client:call really does?
+    %% does it connect to the cluster or is it a local call.
+    {Conn2, {ok, ok}} = thrift_client:call(Conn, set_keyspace, [Keyspace]),
+    Conn2.
