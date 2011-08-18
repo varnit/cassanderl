@@ -13,4 +13,5 @@ $ rebar compile
 $ erl -pa ebin deps/*/ebin -boot start_sasl -sname cassanderl -eval 'application:start(cassanderl).'
 
 (cassanderl@localhost)1> cassanderl:get(<<"MyKeyspace">>, <<"MyCF">>, <<"Key">>, <<"Column">>).
+(cassanderl@localhost)2> cassanderl:get_slice(<<"MyKeyspace">>, <<"MyCF">>, <<"Key">>).
 ```
