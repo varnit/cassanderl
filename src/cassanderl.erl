@@ -40,7 +40,7 @@ gen_server_stub(Request) ->
 run_query(Function, Keyspace, Args) ->
     case gen_server_stub({Function, Keyspace, Args}) of
         {ok, {ok, R1}} ->
-            io:format("output ~p~n", [R1]),
+            %% io:format("output ~p~n", [R1]),
             [Key | _] = Args,
             {Key, parse_column(R1)};
         {exception, notFoundException} ->
