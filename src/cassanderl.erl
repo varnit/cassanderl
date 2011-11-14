@@ -4,7 +4,7 @@
 
 -export([get/4, get_slice/3]).
 
--include_lib("cassandra/include/cassandra_types.hrl").
+-include_lib("cassandra_thrift/include/cassandra_types.hrl").
 
 %%====================================================================
 %% API
