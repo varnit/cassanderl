@@ -35,32 +35,17 @@ init([]) ->
 
     {ok, #state{conn = Conn}}.
 
-handle_call({get, Keyspace, Args}, _From, #state{conn=Conn}=State) ->
-    Conn2 = set_keyspace(Keyspace, Conn),
-    try thrift_client:call(Conn2, get, Args) of
-        {NewConn, Response} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {ok, Response}, NewState}
-    catch
-        {NewConn, {exception, {Exception}}} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {exception, Exception}, NewState}
-    end;
+handle_call({get, Keyspace, Args}, _From, State) ->
+    thrift_call(get, Keyspace, Args, State);
 
-handle_call({get_slice, Keyspace, Args}, _From, #state{conn=Conn}=State) ->
-    Conn2 = set_keyspace(Keyspace, Conn),
-    try thrift_client:call(Conn2, get_slice, Args) of
-        {NewConn, Response} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {ok, Response}, NewState}
-    catch
-        {NewConn, {exception, {Exception}}} ->
-            NewState = State#state{conn=NewConn},
-            {reply, {exception, Exception}, NewState}
-    end;
+handle_call({get_slice, Keyspace, Args}, _From, State) ->
+    thrift_call(get_slice, Keyspace, Args, State);
+
+handle_call({get_count, Keyspace, Args}, _From, State) ->
+    thrift_call(get_count, Keyspace, Args, State);
 
 handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
+    {reply, unknown, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -83,3 +68,15 @@ set_keyspace(Keyspace, Conn) ->
     %% does it connect to the cluster or is it a local call.
     {Conn2, {ok, ok}} = thrift_client:call(Conn, set_keyspace, [Keyspace]),
     Conn2.
+
+thrift_call(Call, Keyspace, Args, #state{conn=Conn}=State) ->
+    Conn2 = set_keyspace(Keyspace, Conn),
+    try thrift_client:call(Conn2, Call, Args) of
+        {NewConn, Response} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {ok, Response}, NewState}
+    catch
+        {NewConn, {exception, {Exception}}} ->
+            NewState = State#state{conn=NewConn},
+            {reply, {exception, Exception}, NewState}
+    end.
