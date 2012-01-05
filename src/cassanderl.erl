@@ -2,9 +2,11 @@
 
 %% TODO: app should start supervisor which will spawn the workers
 
--export([get/4, get_slice/3]).
+-export([get/4, get_slice/3, get_slice/4]).
 
 -include_lib("cassandra_thrift/include/cassandra_types.hrl").
+-define(LIMIT, 100).
+
 
 %%====================================================================
 %% API
@@ -17,8 +19,11 @@ get(Keyspace, ColumnFamily, Key, Column) ->
     run_query(get, Keyspace, [Key, ColumnPath, 1]).
 
 get_slice(Keyspace, ColumnFamily, Key) ->
+    get_slice(Keyspace, ColumnFamily, Key, ?LIMIT).
+
+get_slice(Keyspace, ColumnFamily, Key, Limit) ->
     ColumnPath = #columnParent{column_family=ColumnFamily},
-    Slice = #sliceRange{start="", finish="", reversed=false, count=100},
+    Slice = #sliceRange{start="", finish="", reversed=false, count=Limit},
     SlicePredicate = #slicePredicate{slice_range=Slice},
 
     run_query(get_slice, Keyspace, [Key, ColumnPath, SlicePredicate, 1]).
